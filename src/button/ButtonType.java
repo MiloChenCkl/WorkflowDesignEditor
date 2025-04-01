@@ -6,5 +6,5 @@ public enum ButtonType {
     GENERALIZATION,
     COMPOSITION,
     RECT,
-    ORAL
+    OVAL,
 }

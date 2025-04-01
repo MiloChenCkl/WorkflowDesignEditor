@@ -5,10 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.Color;
 import gui.ToolBar;
 
-public class OralButton extends AbstractButtons implements ActionListener { 
+public class OvalButton extends AbstractButtons implements ActionListener { 
 
-    public OralButton() {
-        super("Oral", ButtonType.ORAL);
+    public OvalButton() {
+        super("Oval", ButtonType.OVAL);
         addActionListener(this);
     }
 
@@ -17,7 +17,7 @@ public class OralButton extends AbstractButtons implements ActionListener {
         toolBar.setButtonsColor();
         toolBar.setSelectedButton(getButtonType());
         setBackground(Color.GRAY);
-        System.out.println("Oral button clicked");
+        System.out.println("Oval button clicked");
     }
 
 }

@@ -2,6 +2,10 @@ package gui;
 
 import javax.swing.*;
 
+import editButton.EditGroup;
+import editButton.EditLabelAction;
+import editButton.EditUnGroup;
+
 public class MenuBar extends JMenuBar {
 
     private static MenuBar instance;
@@ -23,8 +27,13 @@ public class MenuBar extends JMenuBar {
         ungroup = new JMenuItem("Ungroup");
         custom = new JMenuItem("Custom Label Style");
 
+        EditGroup.bindTo(group);
         edit.add(group);
+
+        EditUnGroup.bindTo(ungroup);
         edit.add(ungroup);
+
+        EditLabelAction.bindTo(custom);
         edit.add(custom);
 
     }

@@ -33,21 +33,21 @@ public class ToolBar extends JPanel{
         AbstractButtons generalizationButton = new GeneralizationButton();
         AbstractButtons compositionButton = new CompositionButton();
         AbstractButtons rectButton = new RectButton();
-        AbstractButtons oralButton = new OralButton();
+        AbstractButtons ovalButton = new OvalButton();
 
         add(selectButton);
         add(associationButton);
         add(generalizationButton);
         add(compositionButton);
         add(rectButton);
-        add(oralButton);
+        add(ovalButton);
 
         buttonArray.add(selectButton);
         buttonArray.add(associationButton);
         buttonArray.add(generalizationButton);
         buttonArray.add(compositionButton);
         buttonArray.add(rectButton);
-        buttonArray.add(oralButton);
+        buttonArray.add(ovalButton);
 
         setButtonsColor();
     }
