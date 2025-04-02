@@ -6,16 +6,14 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
 public class Oval extends AbstractShape {
+
     
     public Oval(int x, int y, int depth) {
-        super.createShape(x, y, 150, 100, depth, "Oval");
         portArrayList = new ArrayList<Port>(4);
-        initPort(x, y);
+        super.createShape(x, y, 150, 100, depth, "Oval");
+        initPort();
     }
 
-    public void initPort(int x, int y){
-        
-    }
 
     public void drawShape(Graphics2D g2d) {
 
@@ -33,32 +31,30 @@ public class Oval extends AbstractShape {
         label.drawLabel(g2d, x, y, w, h);
 
         if (isSelected()) {
-            drawConnectionPorts(g2d);
+            for (Port port : portArrayList) {
+                port.drawPort(g2d); 
+            }
         }
     }
 
-    protected void drawConnectionPorts(Graphics2D g2d) {
-        int x = getX();
-        int y = getY();
-        int w = getWidth();
-        int h = getHeight();
-        int portSize = 10;
-        int half = portSize / 2;
+    private void initPort() {
+        
+        for(int i=0; i<4; i++){
+            portArrayList.add(new Port(0, 0, this));
+        }
     
+        setPortPositions(getX(), getY());
+    }
+    
+    public void setPortPositions(int x, int y) {
+        int w = getWidth(), h = getHeight();
         int cx = x + w / 2;
         int cy = y + h / 2;
     
-        int[][] points = {
-            {cx, y - 4},        // top
-            {cx, y + h + 4},    // bottom
-            {x - 4, cy},        // left
-            {x + w + 4, cy},    // right
-        };
-    
-        g2d.setColor(Color.BLACK);
-        for (int[] p : points) {
-            g2d.fillRect(p[0] - half, p[1] - half, portSize, portSize);
-        }
+        portArrayList.get(0).setPosition(cx, y);         // top
+        portArrayList.get(1).setPosition(cx, y + h);     // bottom
+        portArrayList.get(2).setPosition(x, cy);         // left
+        portArrayList.get(3).setPosition(x + w, cy);     // right
     }
 
 }

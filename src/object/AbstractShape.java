@@ -26,7 +26,7 @@ public abstract class AbstractShape {
 
     public void setPosition(int x, int y){
         this.x = x;
-        this.y = y;     
+        this.y = y;   
     }
 
     public int getX(){
@@ -58,7 +58,6 @@ public abstract class AbstractShape {
         return depth;
     }
 
-
     public void setSelected(Boolean selected){
         this.selected = selected;
     }
@@ -70,7 +69,33 @@ public abstract class AbstractShape {
     public Label getLabel(){
         return label;
     }
+    
+    public Port getClosestPort(int mouseX, int mouseY) {
+        if (portArrayList == null || portArrayList.isEmpty()) return null;
+    
+        Port closest = portArrayList.get(0);
+        double minDist = distance(mouseX, mouseY, closest.getX(), closest.getY());
+    
+        for (Port port : portArrayList) {
+            double d = distance(mouseX, mouseY, port.getX(), port.getY());
+            if (d < minDist) {
+                minDist = d;
+                closest = port;
+            }
+        }
 
-    public abstract void drawShape(Graphics2D g2d); 
+        System.out.println("nearest Port X : " + closest.getX() + "nearest Port Y : " +closest.getY());
+
+        return closest;
+    }
+    
+    private double distance(int x1, int y1, int x2, int y2) {
+        int dx = x1 - x2;
+        int dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public abstract void drawShape(Graphics2D g2d);
+    public abstract void setPortPositions(int x, int y);
 
 }

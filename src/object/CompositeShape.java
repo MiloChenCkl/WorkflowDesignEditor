@@ -72,4 +72,14 @@ public class CompositeShape extends AbstractShape {
         return new ArrayList<>(children);
     }
 
+    @Override
+    public void setPortPositions(int x, int y){
+        int dx = x - getX();
+        int dy = y - getY();
+
+        for (AbstractShape shape : children) {
+            shape.setPortPositions(shape.getX() + dx, shape.getY() + dy);
+        }
+    }
+
 }

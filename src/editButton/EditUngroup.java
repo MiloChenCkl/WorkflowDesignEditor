@@ -26,7 +26,7 @@ public class EditUnGroup {
 
             Canvas.getInstance().removeShape(group);
             Canvas.getInstance().addShapes(parts);
-            Canvas.getInstance().clearSelection();
+            Canvas.getInstance().clearSelection();            
             for (AbstractShape shape : parts) {
                 shape.setSelected(true); 
             }

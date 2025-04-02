@@ -2,8 +2,13 @@ package gui;
 
 import button.ButtonType;
 import object.AbstractShape;
+import object.AssociationLink;
+import object.CompositionLink;
+import object.GeneralizationLink;
 import object.AbstractLink;
 import object.Oval;
+import object.Rect;
+import object.Port;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -20,6 +25,8 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     private int dragEndX, dragEndY;
     private boolean isDragging = false;
     private boolean selected = false;
+    private Port startPort;
+    private Port endPort;
 
     private int depth = 0;
     private static ButtonType selectedButton = null;
@@ -56,33 +63,54 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             repaint(); 
             return;
         }
+
+        if (selectedButton == ButtonType.RECT) {
+            AbstractShape rect = new Rect(mouseX, mouseY, depth++);
+            shapeArrayList.add(rect);
+            repaint(); 
+            return;
+        }
     }
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
 
         selectedButton = ToolBar.getInstance().getSelectedButton();
-
         isDragging = false;
         mouseX = e.getX();  
         mouseY = e.getY();
-        dragEndX = mouseX;
-        dragEndY = mouseY;
+        selected = false;
+        clearSelection();
 
-        selected = pressOnSelectedObject(mouseX, mouseY);
-
-        System.out.println("mousePressed: " + mouseX + ", " + mouseY);
-
-    }
-
-    private boolean pressOnSelectedObject(int x, int y) {
-        for (AbstractShape shape : shapeArrayList) {
-            if (shape.isInShape(x, y) && shape.isSelected()) {
-                return true;
+        if (selectedButton == ButtonType.SELECT) {
+            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
+                AbstractShape shape = shapeArrayList.get(i);
+                if (shape.isInShape(mouseX, mouseY)) {        
+                    shape.setSelected(true);
+                    selected = true;               
+                    break;
+                }
             }
         }
-        return false;
+
+        if (selectedButton == ButtonType.ASSOCIATION || 
+            selectedButton == ButtonType.COMPOSITION || 
+            selectedButton == ButtonType.GENERALIZATION){
+
+            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
+                AbstractShape shape = shapeArrayList.get(i);
+                if (shape.isInShape(mouseX, mouseY)) {
+                    startPort = shape.getClosestPort(mouseX, mouseY);
+                    break;
+                }
+            }
+        }
+
+        System.out.println("mousePressed: " + mouseX + ", " + mouseY);
+        repaint();
+
     }
+
 
     @Override
     public void mouseDragged(java.awt.event.MouseEvent e) {
@@ -97,7 +125,6 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             mouseY = e.getY();
         }
         
-
     }
 
     public void dragObject(int x, int y, int endX, int endY) {
@@ -109,6 +136,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             for (AbstractShape shape : shapeArrayList) {
                 if (shape.isSelected()) {
                     shape.setPosition(shape.getX() + dx, shape.getY() + dy);
+                    shape.setPortPositions(shape.getX(), shape.getY());
                 }
             }
         }
@@ -119,19 +147,63 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
 
+        
+
         selectedButton = ToolBar.getInstance().getSelectedButton();
 
-        if (selectedButton == ButtonType.SELECT && !selected) {
-            if (isDragging) {
+        if (selectedButton == ButtonType.SELECT) {
+            if (!selected && isDragging) {
                 isDragging = false;
                 selectInRectangle(mouseX, mouseY, dragEndX, dragEndY);
             }
-            else {
-                selectShape(mouseX, mouseY);
+            else if (!selected && !isDragging){
+                clearSelection();
+            }
+        }
+
+
+        if (selectedButton == ButtonType.ASSOCIATION ||
+        selectedButton == ButtonType.GENERALIZATION ||
+        selectedButton == ButtonType.COMPOSITION) {
+
+            if (startPort == null) return; 
+
+            endPort = null;
+            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
+                AbstractShape shape = shapeArrayList.get(i);
+                if (shape.isInShape(dragEndX, dragEndY)) {
+                    endPort = shape.getClosestPort(dragEndX, dragEndY);
+                    break;
+                }
             }
 
-            repaint();
+            if (endPort == null || startPort == endPort ||
+                startPort.getOwner() == endPort.getOwner()) {
+                startPort = null;
+                return;
+            }
+
+            AbstractLink link = null;
+            if (selectedButton == ButtonType.ASSOCIATION) {
+                link = new AssociationLink(startPort, endPort);
+            } else if (selectedButton == ButtonType.GENERALIZATION) {
+                link = new GeneralizationLink(startPort, endPort);
+            } else if (selectedButton == ButtonType.COMPOSITION) {
+                link = new CompositionLink(startPort, endPort);
+            }
+
+            if (link != null) {
+                linkArrayList.add(link);
+                startPort.addLink(link);  
+                endPort.addLink(link);
+            }
+
+            startPort = null;
+            endPort = null;
         }
+
+        repaint();
+
     }
 
     @Override
@@ -143,7 +215,6 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     public void mouseExited(java.awt.event.MouseEvent e) {
 
     }
-
 
     @Override
     public void mouseMoved(java.awt.event.MouseEvent e) {
@@ -159,27 +230,6 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             }
         }
         return selected;
-    }
-
-    private void selectShape(int x, int y) {
-
-        boolean isTop = true;
-        boolean isSelected = false;
-
-        for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
-
-            AbstractShape shape = shapeArrayList.get(i);
-            isSelected = shape.isInShape(x, y);
-            if(isSelected && isTop) {
-                isTop = false;
-                shape.setSelected(true);
-            }
-            else{
-                shape.setSelected(false);
-            }
-        }
-
-        repaint();
     }
 
     private void selectInRectangle(int x, int y, int endX, int endY) {
@@ -230,6 +280,11 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         for (AbstractShape shape : shapeArrayList) {
             shape.drawShape(g2d);
         }
+        
+        for (AbstractLink link : linkArrayList) {
+            link.drawLink(g2d);
+        }
+
     }
 
 }
