@@ -166,7 +166,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         selectedButton == ButtonType.GENERALIZATION ||
         selectedButton == ButtonType.COMPOSITION) {
 
-            if (startPort == null) return; 
+            if (startPort == null || isDragging == false) return; 
 
             endPort = null;
             for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
