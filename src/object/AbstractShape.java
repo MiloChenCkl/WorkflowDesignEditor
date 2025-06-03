@@ -84,8 +84,6 @@ public abstract class AbstractShape {
             }
         }
 
-        System.out.println("nearest Port X : " + closest.getX() + "nearest Port Y : " +closest.getY());
-
         return closest;
     }
     

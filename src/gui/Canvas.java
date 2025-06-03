@@ -1,13 +1,8 @@
 package gui;
 
-import button.ButtonType;
 import object.AbstractShape;
-import object.AssociationLink;
-import object.CompositionLink;
-import object.GeneralizationLink;
 import object.AbstractLink;
-import object.Oval;
-import object.Rect;
+import objectCreator.Tool;
 import object.Port;
 
 import java.awt.event.MouseListener;
@@ -29,7 +24,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     private Port endPort;
 
     private int depth = 0;
-    private static ButtonType selectedButton = null;
+    private Tool creator = null;
     private ArrayList<AbstractShape> shapeArrayList;
     private ArrayList<AbstractLink> linkArrayList;
 
@@ -52,57 +47,43 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
 
-        selectedButton = ToolBar.getInstance().getSelectedButton();
-
         mouseX = e.getX();
         mouseY = e.getY();
 
-        if (selectedButton == ButtonType.OVAL) {
-            AbstractShape oval = new Oval(mouseX, mouseY, depth++);
-            shapeArrayList.add(oval);
-            repaint(); 
+        if(creator != null) {
+            AbstractShape shape = creator.createShape(mouseX, mouseY, depth++);
+            if (shape != null) {
+                shapeArrayList.add(shape);
+                repaint();
+            }
             return;
         }
 
-        if (selectedButton == ButtonType.RECT) {
-            AbstractShape rect = new Rect(mouseX, mouseY, depth++);
-            shapeArrayList.add(rect);
-            repaint(); 
-            return;
-        }
     }
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
 
-        selectedButton = ToolBar.getInstance().getSelectedButton();
         isDragging = false;
         mouseX = e.getX();  
         mouseY = e.getY();
         selected = false;
         clearSelection();
 
-        if (selectedButton == ButtonType.SELECT) {
-            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
-                AbstractShape shape = shapeArrayList.get(i);
-                if (shape.isInShape(mouseX, mouseY)) {        
+        for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
+
+            AbstractShape shape = shapeArrayList.get(i);
+
+            if (shape.isInShape(mouseX, mouseY)) {
+
+                if (isSelectMode()) {
                     shape.setSelected(true);
-                    selected = true;               
-                    break;
+                    selected = true;
                 }
-            }
-        }
 
-        if (selectedButton == ButtonType.ASSOCIATION || 
-            selectedButton == ButtonType.COMPOSITION || 
-            selectedButton == ButtonType.GENERALIZATION){
+                startPort = shape.getClosestPort(mouseX, mouseY);
 
-            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
-                AbstractShape shape = shapeArrayList.get(i);
-                if (shape.isInShape(mouseX, mouseY)) {
-                    startPort = shape.getClosestPort(mouseX, mouseY);
-                    break;
-                }
+                break;
             }
         }
 
@@ -132,7 +113,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         int dx = endX - x;
         int dy = endY - y;
 
-        if (selectedButton == ButtonType.SELECT) {
+        if (isSelectMode()) {
             for (AbstractShape shape : shapeArrayList) {
                 if (shape.isSelected()) {
                     shape.setPosition(shape.getX() + dx, shape.getY() + dy);
@@ -147,11 +128,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
 
-        
-
-        selectedButton = ToolBar.getInstance().getSelectedButton();
-
-        if (selectedButton == ButtonType.SELECT) {
+        if (isSelectMode()) {
             if (!selected && isDragging) {
                 isDragging = false;
                 selectInRectangle(mouseX, mouseY, dragEndX, dragEndY);
@@ -162,45 +139,34 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         }
 
 
-        if (selectedButton == ButtonType.ASSOCIATION ||
-        selectedButton == ButtonType.GENERALIZATION ||
-        selectedButton == ButtonType.COMPOSITION) {
+        if (isDragging == false) return; 
 
-            if (startPort == null || isDragging == false) return; 
-
-            endPort = null;
-            for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
-                AbstractShape shape = shapeArrayList.get(i);
-                if (shape.isInShape(dragEndX, dragEndY)) {
-                    endPort = shape.getClosestPort(dragEndX, dragEndY);
-                    break;
-                }
+        endPort = null;
+        for (int i = shapeArrayList.size() - 1; i >= 0; i--) {
+            AbstractShape shape = shapeArrayList.get(i);
+            if (shape.isInShape(dragEndX, dragEndY)) {
+                endPort = shape.getClosestPort(dragEndX, dragEndY);
+                break;
             }
+        }
 
-            if (endPort == null || startPort == endPort ||
-                startPort.getOwner() == endPort.getOwner()) {
-                startPort = null;
-                return;
-            }
+        if (startPort == null || endPort == null || startPort.getOwner() == endPort.getOwner()) {
+            startPort = null;
+            return;
+        }
 
-            AbstractLink link = null;
-            if (selectedButton == ButtonType.ASSOCIATION) {
-                link = new AssociationLink(startPort, endPort);
-            } else if (selectedButton == ButtonType.GENERALIZATION) {
-                link = new GeneralizationLink(startPort, endPort);
-            } else if (selectedButton == ButtonType.COMPOSITION) {
-                link = new CompositionLink(startPort, endPort);
-            }
 
+        if (creator != null){
+            AbstractLink link = creator.createLink(startPort, endPort);
             if (link != null) {
                 linkArrayList.add(link);
                 startPort.addLink(link);  
                 endPort.addLink(link);
             }
-
-            startPort = null;
-            endPort = null;
         }
+            
+        startPort = null;
+        endPort = null;
 
         repaint();
 
@@ -277,16 +243,28 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         super.paintComponent(g);
         g.clearRect(0, 0, getWidth(), getHeight());
         Graphics2D g2d = (Graphics2D) g;
+
         for (AbstractShape shape : shapeArrayList) {
             shape.drawShape(g2d);
         }
-        
+
         for (AbstractLink link : linkArrayList) {
             link.drawLink(g2d);
         }
-
+    
     }
 
+    public void setCreator(Tool creator) {
+        this.creator = creator;
+    }
+
+    public Tool getCreator() {
+        return creator;
+    }
+
+    public boolean isSelectMode(){
+        return this.creator == null;
+    }
 }
 
 

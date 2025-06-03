@@ -4,14 +4,8 @@ import javax.swing.JButton;
 
 public abstract class AbstractButtons extends JButton {
 
-    private final ButtonType ButtonType;
-
-    public AbstractButtons(String name, ButtonType type) {
+    public AbstractButtons(String name) {
         super(name);
-        this.ButtonType = type;
     }
 
-    public ButtonType getButtonType() {
-        return ButtonType;
-    }
 }

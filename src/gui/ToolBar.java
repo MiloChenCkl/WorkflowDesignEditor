@@ -10,7 +10,6 @@ public class ToolBar extends JPanel{
 
     private static ToolBar instance;
     private final ArrayList<AbstractButtons> buttonArray = new ArrayList<AbstractButtons>();
-    private ButtonType selectedButton = null;
 
     private ToolBar() {
         InitButtons();
@@ -57,17 +56,4 @@ public class ToolBar extends JPanel{
             button.setBackground(Color.LIGHT_GRAY);
         }
     }
-
-    public void setSelectedButton(ButtonType selectedButton) {
-        this.selectedButton = selectedButton;
-        for(AbstractButtons button : buttonArray) {
-            if(button.getButtonType() == (selectedButton)) {
-                button.setBackground(Color.GRAY);
-            }
-        }
-    }
-
-    public ButtonType getSelectedButton() {
-        return selectedButton;
-    }   
 };

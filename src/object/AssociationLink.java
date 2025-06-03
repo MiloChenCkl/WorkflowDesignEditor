@@ -13,8 +13,6 @@ public class AssociationLink extends AbstractLink {
     @Override
     public void drawLink(Graphics2D g2d) {
 
-        System.out.println("draw as link");
-
         Port from = getFromPort();
         Port to = getToPort();
 
